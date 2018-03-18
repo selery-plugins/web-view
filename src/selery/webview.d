@@ -159,107 +159,23 @@ class WebViewRouter : Router {
 		if(seconds - this.lastStatusUpdate > 10) this.reloadStatus();
 		this.status.apply(req, res);
 	}
-
-}
-
-/+
-
-void startWebView(shared HubServer server, Address address) {
-
-	shared WebResource icon;
-	shared string info;
-	shared WebResource status;
-
-	shared string iconRedirect = null;
-
-	shared ulong lastStatusUpdate;
 	
-	shared size_t sessionsCount;
-	
-	
-	public shared void reloadWebResources() {
-		
-		const config = this.server.config;
-		
-		// icon.png
-		this.icon = WebResource.init;
-		this.iconRedirect = null;
-		with(this.server.icon) {
-			if(url.length) {
-				this.iconRedirect = url;
-			} else if(data.length) {
-				// must be valid if not empty
-				this.icon.uncompressed = cast(string)data;
-				this.icon.compress();
+	@Get("/player_([0-9]+).json") _player(Request req, Response res, string _id) {
+		res.headers["Content-Type"] = "application/json; charset=utf-8";
+		try {
+			auto player = this.server.playerFromId(to!uint(_id));
+			if(player !is null) {
+				JSONValue[string] json;
+				json["name"] = player.username;
+				json["display"] = player.displayName;
+				json["version"] = player.game;
+				if(player.skin !is null) json["skin"] = player.skin.faceBase64;
+				if(player.world !is null) json["world"] = ["name": JSONValue(player.world.name), "dimension": JSONValue(player.dimension)];
+				res.body = JSONValue(json).toString();
+				return;
 			}
-		}
-		
-		// status.json
-		this.reloadWebStatus();
-		
+		} catch(Exception) {}
+		res.body = `{"error":"player not found"}`;
 	}
-	
-	private shared Response handleConnection(Socket socket, Request request) {
-		if(!request.valid || request.path.length == 0 || "host" !in request.headers) return Response.error(StatusCodes.badRequest);
-		if(request.method != "GET") return Response.error(StatusCodes.methodNotAllowed, ["Allow": "GET"]);
-		switch(decode(request.path[1..$])) {
-			case "":
-				const config = this.server.config.hub;
-				immutable host = request.headers["host"];
-				return Response(StatusCodes.ok, ["Content-Type": "text/html"], compileDietFile!("view.dt", config, host));
-			case "info.json":
-				return Response(StatusCodes.ok, ["Content-Type": "application/json; charset=utf-8"], this.info);
-			case "social.json":
-				return Response(StatusCodes.ok, ["Content-Type": "application/json; charset=utf-8"], *this.socialJson);
-			case "status":
-				auto time = seconds;
-				if(time - this.lastStatusUpdate > 10) this.reloadWebStatus();
-				auto response = Response(StatusCodes.ok, ["Content-Type": "application/octet-stream"], this.status.uncompressed);
-				if(this.status.isCompressed) {
-					response = this.returnWebResource(this.status, request, response);
-				}
-				return response;
-			case "icon.png":
-				if(this.iconRedirect !is null) {
-					return Response.redirect(StatusCodes.temporaryRedirect, this.iconRedirect);
-				} else if(this.icon.compressed !is null) {
-					auto response = Response(StatusCodes.ok, ["Content-Type": "image/png"]);
-					return this.returnWebResource(this.icon, request, response);
-				} else {
-					return Response.redirect("//i.imgur.com/uxvZbau.png");
-				}
-			case "icon":
-				return Response.redirect("/icon.png");
-			case Software.codenameEmoji:
-				return Response(Status(418, "I'm a " ~ Software.codename.toLower), ["Content-Type": "text/html"], "<head><meta charset='UTF-8'/><style>span{font-size:128px}</style><script>function a(){document.body.innerHTML+='<span>" ~ Software.codenameEmoji ~ "</span>';setTimeout(a,Math.round(Math.random()*2500));}window.onload=a;</script></head>");
-			case "software":
-				return Response.redirect(Software.website);
-			case "website":
-				if(this.website.length) {
-					return Response.redirect("//" ~ this.website);
-				} else {
-					return Response.error(StatusCodes.notFound);
-				}
-			default:
-				if(request.path.startsWith("/player_") && request.path.endsWith(".json")) {
-					try {
-						auto player = this.server.playerFromId(to!uint(request.path[8..$-5]));
-						if(player !is null) {
-							JSONValue[string] json;
-							json["name"] = player.username;
-							json["display"] = player.displayName;
-							json["version"] = player.game;
-							if(player.skin !is null) json["skin"] = player.skin.faceBase64;
-							if(player.world !is null) json["world"] = ["name": JSONValue(player.world.name), "dimension": JSONValue(player.dimension)];
-							return Response(StatusCodes.ok, ["Content-Type": "application/json; charset=utf-8"], JSONValue(json).toString());
-						}
-					} catch(Exception) {}
-					return Response(StatusCodes.notFound, ["Content-Type": "application/json; charset=utf-8"], `{"error":"player not found"}`);
-				}
-				return Response.error(StatusCodes.notFound);
-		}
-	}
-	
-}
 
-+/
+}

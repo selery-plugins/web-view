@@ -1,4 +1,3 @@
-
 const UPDATE_TIMEOUT = 3000;
 const UNLIMITED = 4294967296;
 
