@@ -1,0 +1,5 @@
+name = "web-view"
+authors = ["sel-project"]
+target = "hub"
+main = "selery.webview.Main"
+dependencies."dub:lighttp" = {path = "../../lighttp"}
