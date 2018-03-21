@@ -24,12 +24,14 @@ module selery.webview;
 
 import std.bitmanip : nativeToLittleEndian;
 import std.concurrency : spawn;
+import std.conv : to;
 import std.json : JSONValue;
 import std.regex : ctRegex;
 import std.string : indexOf, strip;
 
-import selery.about;
+import selery.about : Software;
 import selery.hub.plugin;
+import selery.plugin : Plugin;
 import selery.util.util : seconds;
 
 import lighttp;
