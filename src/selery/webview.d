@@ -25,6 +25,7 @@ module selery.webview;
 import std.bitmanip : nativeToLittleEndian;
 import std.concurrency : spawn;
 import std.json : JSONValue;
+import std.regex : ctRegex;
 import std.string : indexOf, strip;
 
 import selery.about;
@@ -78,10 +79,10 @@ class WebViewRouter : Router {
 	this(shared HubServer server, Plugin plugin) {
 		this.server = server;
 		this.plugin = plugin;
-		this.background = new Resource("image/png", server.files.readPluginAsset(plugin, "res/background.png"));
-		this.index = new Resource("text/html");
-		this.info = new Resource("application/json; charset=utf-8");
-		this.icon = new Resource("image/png");
+		this.background = new CachedResource("image/png", server.files.readPluginAsset(plugin, "res/background.png"));
+		this.index = new CachedResource("text/html");
+		this.info = new CachedResource("application/json; charset=utf-8");
+		this.icon = new CachedResource("image/png");
 		this.status = new Resource("application/octet-stream");
 		this.reload();
 	}
@@ -160,22 +161,20 @@ class WebViewRouter : Router {
 		this.status.apply(req, res);
 	}
 	
-	@Get("/player_([0-9]+).json") _player(Request req, Response res, string _id) {
+	@Get(ctRegex!`\/player_([0-9]{1,9}).json`) _player(Response res, uint id) {
 		res.headers["Content-Type"] = "application/json; charset=utf-8";
-		try {
-			auto player = this.server.playerFromId(to!uint(_id));
-			if(player !is null) {
-				JSONValue[string] json;
-				json["name"] = player.username;
-				json["display"] = player.displayName;
-				json["version"] = player.game;
-				if(player.skin !is null) json["skin"] = player.skin.faceBase64;
-				if(player.world !is null) json["world"] = ["name": JSONValue(player.world.name), "dimension": JSONValue(player.dimension)];
-				res.body = JSONValue(json).toString();
-				return;
-			}
-		} catch(Exception) {}
-		res.body = `{"error":"player not found"}`;
+		auto player = this.server.playerFromId(id);
+		if(player !is null) {
+			JSONValue[string] json;
+			json["name"] = player.username;
+			json["display"] = player.displayName;
+			json["version"] = player.game;
+			if(player.skin !is null) json["skin"] = player.skin.faceBase64;
+			if(player.world !is null) json["world"] = ["name": JSONValue(player.world.name), "dimension": JSONValue(player.dimension)];
+			res.body = JSONValue(json).toString();
+		} else {
+			res.body = `{"error":"player not found"}`;
+		}
 	}
 
 }
