@@ -68,12 +68,12 @@ class WebViewRouter : Router {
 	private Plugin plugin;
 	
 	// never reloaded
-	@Get("/background.png") Resource background;
+	@Get("background.png") Resource background;
 	
 	// may be reloaded
-	@Get("/") Resource index;
-	@Get("/info.json") Resource info;
-	@Get("/icon.png") Resource icon;
+	@Get("") Resource index;
+	@Get("info.json") Resource info;
+	@Get("icon.png") Resource icon;
 	
 	Resource status;
 	uint lastStatusUpdate;
@@ -158,12 +158,12 @@ class WebViewRouter : Router {
 		this.lastStatusUpdate = seconds;
 	}
 	
-	@Get("/status") _status(Request req, Response res) {
+	@Get("status") _status(Request req, Response res) {
 		if(seconds - this.lastStatusUpdate > 10) this.reloadStatus();
 		this.status.apply(req, res);
 	}
 	
-	@Get(ctRegex!`\/player_([0-9]{1,9}).json`) _player(Response res, uint id) {
+	@Get("player_([0-9]{1,9}).json") _player(Response res, uint id) {
 		res.headers["Content-Type"] = "application/json; charset=utf-8";
 		auto player = this.server.playerFromId(id);
 		if(player !is null) {
