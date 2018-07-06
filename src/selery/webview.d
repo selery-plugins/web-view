@@ -57,12 +57,11 @@ void startWebView(shared HubServer server, shared Plugin plugin, immutable(Addre
 	foreach(address ; addresses) {
 		http.host(address.ip, address.port);
 	}
-	
-	while(true) http.eventLoop.loop();
+	http.loop();
 
 }
 
-class WebViewRouter : Router {
+class WebViewRouter {
 
 	private shared HubServer server;
 	private Plugin plugin;
@@ -82,7 +81,7 @@ class WebViewRouter : Router {
 		this.server = server;
 		this.plugin = plugin;
 		this.background = new CachedResource("image/png", server.files.readPluginAsset(plugin, "res/background.png"));
-		this.index = new CachedResource("text/html");
+		this.index = new Resource("text/html");
 		this.info = new CachedResource("application/json; charset=utf-8");
 		this.icon = new CachedResource("image/png");
 		this.status = new Resource("application/octet-stream");

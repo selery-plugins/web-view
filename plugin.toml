@@ -2,5 +2,4 @@ name = "web-view"
 authors = ["sel-project"]
 target = "hub"
 main = "selery.webview.Main"
-dependencies.dub.libasync = "~>0.8.3"
-dependencies.dub.lighttp = "~>0.1.2"
+dependencies.dub.lighttp = "~>0.2.0"
