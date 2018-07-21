@@ -22,6 +22,8 @@
  */
 module selery.webview;
 
+import core.stdc.time : time_t;
+
 import std.bitmanip : nativeToLittleEndian;
 import std.concurrency : spawn;
 import std.conv : to;
@@ -76,7 +78,7 @@ class WebViewRouter {
 	@Get("icon.png") Resource icon;
 	
 	Resource status;
-	uint lastStatusUpdate;
+	time_t lastStatusUpdate;
 	
 	this(shared HubServer server, Plugin plugin) {
 		this.server = server;
