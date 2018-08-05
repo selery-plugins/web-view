@@ -60,7 +60,7 @@ void startWebView(shared HubServer server, shared Plugin plugin, immutable(Addre
 		http.host(address.ip, address.port);
 	}
 	http.router.add(new WebViewRouter(server, cast()plugin));
-	http.loop();
+	http.run();
 
 }
 
