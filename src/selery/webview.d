@@ -48,25 +48,24 @@ struct Address {
 class Main : HubPlugin {
 
 	@start onStart() {
-		spawn(&startWebView, server, plugin, [Address("0.0.0.0", 80)].idup);
+		startWebView(server, plugin, [Address("0.0.0.0", 80)].idup);
 	}
 
 }
 
-void startWebView(shared HubServer server, shared Plugin plugin, immutable(Address)[] addresses) {
+void startWebView(HubServer server, Plugin plugin, immutable(Address)[] addresses) {
 
-	auto http = new Server();
+	auto http = new Server(server.eventLoop);
 	foreach(address ; addresses) {
 		http.host(address.ip, address.port);
 	}
 	http.router.add(new WebViewRouter(server, cast()plugin));
-	http.run();
 
 }
 
 class WebViewRouter {
 
-	private shared HubServer server;
+	private HubServer server;
 	private Plugin plugin;
 	
 	// never reloaded
@@ -80,7 +79,7 @@ class WebViewRouter {
 	Resource status;
 	time_t lastStatusUpdate;
 	
-	this(shared HubServer server, Plugin plugin) {
+	this(HubServer server, Plugin plugin) {
 		this.server = server;
 		this.plugin = plugin;
 		this.background = new CachedResource("image/png", server.files.readPluginAsset(plugin, "res/background.png"));
